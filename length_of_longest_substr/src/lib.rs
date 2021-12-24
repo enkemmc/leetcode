@@ -11,7 +11,7 @@ impl Solution {
         let mut char_to_index_map = HashMap::new();
 
         for (i, ch) in &chars {
-            longest = if (r - l) > longest { r - l } else { longest };
+            longest = std::cmp::max(r-l, longest);
             if let Some(&prev_index) = char_to_index_map.get(ch){
                 for (_, och) in &chars[l..=prev_index] {
                     char_to_index_map.remove_entry(och);
@@ -25,13 +25,13 @@ impl Solution {
             r += 1;
         }
 
-        longest = if (r - l) > longest { r - l } else { longest };
+        longest = std::cmp::max(r-l, longest);
         longest as i32
     }
 }
 
  mod test {
-    use super::*;
+    use super::Solution;
     #[test]
     fn test1(){
         let input = "abcabcbb".to_string();
