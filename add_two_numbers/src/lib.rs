@@ -26,33 +26,25 @@ impl Solution {
         let mut carried = 0;
 
         while l1.is_some() || l2.is_some() {
-            let n1 = if l1.is_some() {
-                let n= l1.as_ref().unwrap().val;
-                l1 = l1.unwrap().next;
-                n
-            } else {
-                0
+            let mut sum = match (&l1, &l2) {
+                (Some(n1), Some(n2)) => n1.val + n2.val + carried,
+                (None, Some(n2)) => n2.val + carried,
+                (Some(n1), None) => n1.val + carried,
+                (None, None) => carried,
             };
 
-            let n2 = if l2.is_some() {
-                let n = l2.as_ref().unwrap().val;
-                l2 = l2.unwrap().next;
-                n
-            } else {
-                0
-            };
-
-            let mut sum = n1 + n2 + carried;
-            carried = 0;
+            carried = sum / 10;
 
             if sum >= 10 {
-                carried = 1;
                 sum %= 10;
             }
 
             let new_node = ListNode::new(sum);
             current.next = Some(Box::new(new_node));
             current = &mut *current.next.as_mut().unwrap();
+
+            l1 = if l1.is_some() { l1.unwrap().next } else { l1 };
+            l2 = if l2.is_some() { l2.unwrap().next } else { l2 };
         }
         
         if carried == 1 {
