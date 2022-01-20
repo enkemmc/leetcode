@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 // Definition for singly-linked list.
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ListNode {
@@ -14,6 +12,17 @@ impl ListNode {
       next: None,
       val
     }
+  }
+
+  pub fn to_vec(&self) -> Vec<i32> {
+    let mut v = vec![self.val];
+    let mut ptr = &self.next;
+    while let Some(node) = ptr {
+      v.push(node.val);
+      ptr = &node.next;
+    }
+
+    v
   }
 }
 
