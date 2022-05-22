@@ -3,23 +3,15 @@ use std::mem::swap;
 struct Solution;
 impl Solution {
     pub fn swap_pairs(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
-        let mut focus = &mut head;
-        
-        while focus.is_some() {
-            let first = focus.as_mut().unwrap();
-            if first.next.is_some() {
-                let mut second = first.next.take().unwrap();
-                let third = second.next.take();
-                let mut first = focus.replace(second);
-                first.as_mut().unwrap().next = third;
-                focus.as_mut().unwrap().next = first;
-                focus = &mut focus.as_mut().unwrap().next.as_mut().unwrap().next;
-            } else {
-                break;
-            }
-        }
-
-        head
+        head.and_then(|mut node| match node.next {
+            Some(mut second) => {
+                let third = Solution::swap_pairs(second.next.take());
+                node.next = third;
+                head = Some(second);
+                head
+            },
+            None => head
+        })
     }
 }
 
