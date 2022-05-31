@@ -4,47 +4,64 @@ use std::collections::HashSet;
 struct Solution;
 impl Solution {
     pub fn restore_ip_addresses(s: String) -> Vec<String> {
-        let mut combos = HashSet::new();
-        let mut len = s.len();
-        if len < 4 || len > 12 {
-            return vec![];
-        }
-        // [0.0.0.0]
-        for l in 1..len - 3 {
-            for m in l + 1..min(l + 4, len - 2) {
-                for r in m + 1..min(m + 4, len - 1) {
-                    if let Some(s) = Self::get_str(l, m, r, &s) {
-                        println!("{}", s);
+        let mut addrs = vec![];
+        let chars = s.chars().collect::<Vec<char>>();
+
+        // [12345]
+        'first: for l in 1..4 {
+            'second: for m in l + 1..l + 4 {
+                'third: for r in m + 1..m + 5 {
+                    if l >= m {
+                        break 'first;
+                    } else if m >= r {
+                        break 'second;
+                    } else if r >= s.len() {
+                        break 'third;
+                    } else {
+                        Self::build_and_store(&mut addrs, &chars, &s, l, m, r);
                     }
                 }
             }
         }
 
-        combos.into_iter().collect()
+        addrs
     }
 
-    fn get_str(l: usize, m: usize, r: usize, s: &String) -> Option<String> {
-        if l >= m || m >= r || r >= s.len() {
-            return None;
-        }
-        // check lengths
-        // first num is 1,2,
-        let first = (l - 0, ..l);
-        let second = (m - l, l..m);
-        let third = (r - m, m..r);
-        let fourth = (s.len() - r, r..s.len());
-
-        for (len, rng) in [first, second, third, fourth].into_iter() {
-            if len < 0 || len <= 3 {
-                return None;
-            } else {
-                match s.get(rng.start) {
-                    _ => (),
+    fn build_and_store(
+        addrs: &mut Vec<String>,
+        chars: &[char],
+        s: &String,
+        l: usize,
+        m: usize,
+        r: usize,
+    ) {
+        let mut first = String::from(&s[..l]);
+        let mut second = String::from(&s[l..m]);
+        let mut third = String::from(&s[m..r]);
+        let mut fourth = String::from(&s[r..]);
+        for part in [&first, &second, &third, &fourth] {
+            match part.len() {
+                1 => continue,
+                2 => {
+                    if part.chars().nth(0).unwrap() == '0' {
+                        return;
+                    }
+                } // make sure it doent start with a 0
+                3 => {
+                    if part.chars().nth(0).unwrap() == '0' || part.chars().nth(1).unwrap() == '0' {
+                        return;
+                    } else {
+                        let i = part.parse::<i32>().unwrap();
+                        if i > 255 {
+                            return;
+                        }
+                    }
                 }
+                _ => return,
             }
         }
-        // format!("{}.{}.{}.{}", &s[..l], &s[l..m], &s[m..r], &s[r..])
-        None
+        let s = format!("{}.{}.{}.{}", first, second, third, fourth);
+        addrs.push(s);
     }
 }
 
@@ -66,7 +83,7 @@ mod tests {
         assert_eq!(ans, expected);
     }
 
-    // #[test]
+    #[test]
     fn second() {
         let s = "0000".to_string();
         let expected: Vec<String> = ["0.0.0.0"].into_iter().map(|s| s.to_string()).collect();
@@ -76,7 +93,7 @@ mod tests {
         assert_eq!(ans, expected);
     }
 
-    // #[test]
+    #[test]
     fn third() {
         let s = "101023".to_string();
         let expected: Vec<String> = [

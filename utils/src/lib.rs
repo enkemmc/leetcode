@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 // Definition for singly-linked list.
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ListNode {
@@ -36,18 +39,19 @@ impl From<Vec<i32>> for ListNode {
     }
 }
 
-pub struct TreeNode<T> {
-    val: T,
-    left: Option<Box<T>>,
-    right: Option<Box<T>>,
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct TreeNode {
+    pub val: i32,
+    pub left: Option<Rc<RefCell<TreeNode>>>,
+    pub right: Option<Rc<RefCell<TreeNode>>>,
 }
 
-impl<T> From<Vec<T>> for TreeNode<T> {
-    fn from(v: Vec<T>) -> Self {
+impl TreeNode {
+    pub fn new(val: i32) -> Self {
         Self {
-            val: (),
-            left: (),
-            right: (),
+            val,
+            left: None,
+            right: None,
         }
     }
 }
