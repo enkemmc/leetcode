@@ -1,23 +1,22 @@
+use std::cmp::max;
+
 impl Solution {
     pub fn can_jump(nums: Vec<i32>) -> bool {
+        let mut farthest = nums[0] as usize; // maximum reachable index
         let len = nums.len();
-        let mut right_most = nums[0] as usize;
-        if nums.len() == 1 && nums[0] == 0 {
-            return true;
+        for i in 0..len {
+            if farthest >= len - 1 {
+                // reached the end
+                return true;
+            } else if i > farthest {
+                // got stuck on a 0
+                return false;
+            } else {
+                farthest = max(farthest, i + nums[i] as usize);
+            }
         }
 
-        for i in 0..len {
-            if i + nums[i] as usize > right_most {
-                right_most = i + nums[i] as usize;
-            }
-            if i == right_most {
-                return false;
-            }
-            if right_most == len - 1 {
-                return true;
-            }
-        }
-        right_most >= len - 1
+        farthest >= len - 1
     }
 }
 
@@ -60,6 +59,13 @@ mod tests {
     #[test]
     fn fifth() {
         let nums = vec![1, 2, 3];
+        let expected = true;
+        let ans = Solution::can_jump(nums);
+        assert_eq!(ans, expected);
+    }
+    #[test]
+    fn sixth() {
+        let nums = vec![3, 0, 8, 2, 0, 0, 1];
         let expected = true;
         let ans = Solution::can_jump(nums);
         assert_eq!(ans, expected);
