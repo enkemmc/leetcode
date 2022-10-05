@@ -1,49 +1,35 @@
-use std::collections::BinaryHeap;
-use std::cmp::Reverse;
-
-
+// [1,1,1,7,7,7] k = 4, x = 3
 impl Solution {
     pub fn find_closest_elements(arr: Vec<i32>, k: i32, x: i32) -> Vec<i32> {
-        let mut heap = BinaryHeap::new();
-        let mut iter = arr.iter().enumerate();
-        let mut closest_index_to_val = (0, x.abs_diff(*iter.next().unwrap().1));
-
-        for (index, num) in iter {
-            if x.abs_diff(*num) < closest_index_to_val.1 {
-                closest_index_to_val = (index, x.abs_diff(*num));
+        if k == 1 {
+            let mut closest = arr[0];
+            let mut iter = arr[1..].into_iter();
+            while let Some(&num) = iter.next() {
+                if Self::is_closer(num, closest, x) {
+                    println!("{} : {}", num, closest);
+                    closest = num;
+                } else {
+                    if num != closest {
+                    println!("{} : {} exiting", num, closest);
+                        break;
+                    }
+                }
             }
-        }
-        let i = closest_index_to_val.0;
-
-        // add k to the left and right
-        let mut count = 0;
-        let mut index = i;
-        heap.push(Reverse(arr[i]));
-        while index > 0 && count < k {
-            index -= 1;
-            heap.push(Reverse(arr[index]));
-            count += 1;
-        }
-
-        index = i;
-        count = 0;
-
-        while index < arr.len() - 1 && count < k {
-            index += 1;
-            heap.push(Reverse(arr[index]));
-            count += 1;
-        }
-        
-
-        let mut ans = vec![];
-        while let Some(Reverse(num)) = heap.pop() {
-            ans.push(num);
-            if ans.len() == k as usize {
-                break;
+            vec![closest]
+        } else {
+            let mut l = 0;
+            let mut r = k as usize - 1;
+            while r < arr.len() - 1 && !Self::is_closer(arr[l+ 1], arr[r + 1], x) {
+                l += 1;
+                r += 1;
             }
+            arr[l..=r].to_vec()
         }
+    }
 
-        ans
+    // is a closer to x than b?
+    fn is_closer(a: i32, b: i32, x: i32) -> bool {
+        (a - x) < (b - x) || (a - x) == (b - x) && a < b
     }
 }
 
@@ -52,7 +38,6 @@ mod tests {
     use crate::Solution;
 
 
-    #[test]
     fn first() {
         let input = vec![1,2,3,4,5];
         let k = 4;
@@ -69,6 +54,15 @@ mod tests {
         let x = 9;
         let ans = Solution::find_closest_elements(input, k, x);
         let expected = vec![10];
+        assert_eq!(expected, ans);
+    }
+
+    fn third(){
+        let input = vec![1,2];
+        let k = 1;
+        let x = 1;
+        let ans = Solution::find_closest_elements(input, k, x);
+        let expected = vec![1];
         assert_eq!(expected, ans);
     }
 }
