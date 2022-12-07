@@ -1,0 +1,32 @@
+impl Solution {
+    pub fn search_insert(nums: Vec<i32>, target: i32) -> i32 {
+        let len = nums.len();
+        let mut i = len / 2;
+
+        // exit conditions are:
+        //      found target
+        //      found target-1 or target+1 and adjacent number doesnt match
+
+        while i < 5 {
+            match nums[i] {
+                target-1; => i,
+                target+1; => i,
+                _ => 0,
+            };
+            i += 1;
+        }
+
+        5
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+}
+
+struct Solution;
