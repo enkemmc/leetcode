@@ -17,41 +17,83 @@ impl ListNode {
 struct Solution;
 impl Solution {
     pub fn add_two_numbers(l1: Option<Box<ListNode>>, l2: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
-        let mut head = Some(Box::new(ListNode::new(1)));
-        let mut current= &mut *head.as_mut().unwrap();
+        let (len1, tail1) = Self::reverse(l1);
+        let (len2, tail2) = Self::reverse(l2);
+        println!("{:?}", tail2);
 
-        let mut l1 = l1;
-        let mut l2 = l2;
+        let (bigger, mut smaller) = if len1 > len2 {
+            (tail1, tail2)
+        } else {
+            (tail2, tail1)
+        };
+        let mut carrying = false;
+        let mut curr = bigger;
+        let mut prev = None;
 
-        let mut carried = 0;
+        while smaller.is_some() {
+            match(curr, smaller) {
+                (Some(mut big_node), Some(small_node)) => {
+                    let mut total = big_node.val + small_node.val;
+                    if carrying {
+                        total += 1;
+                    }
+                    if total >= 10 {
+                        total -= 10;
+                        carrying = true;
+                    } else {
+                        carrying = false;
+                    }
 
-        while l1.is_some() || l2.is_some() {
-            let mut sum = match (&l1, &l2) {
-                (Some(n1), Some(n2)) => n1.val + n2.val + carried,
-                (None, Some(n2)) => n2.val + carried,
-                (Some(n1), None) => n1.val + carried,
-                (None, None) => carried,
-            };
+                    big_node.val = total;
 
-            carried = sum / 10;
+                    let temp = big_node.next;
+                    big_node.next = prev;
+                    prev = Some(big_node);
+                    curr = temp;
 
-            if sum >= 10 {
-                sum %= 10;
+                    smaller = small_node.next;
+                },
+                _ => unreachable!(),
             }
-
-            let new_node = ListNode::new(sum);
-            current.next = Some(Box::new(new_node));
-            current = &mut *current.next.as_mut().unwrap();
-
-            l1 = if l1.is_some() { l1.unwrap().next } else { l1 };
-            l2 = if l2.is_some() { l2.unwrap().next } else { l2 };
-        }
-        
-        if carried == 1 {
-            current.next = Some(Box::new(ListNode::new(1)));
         }
 
-        head.unwrap().next
+        // finish un-reversing the longer list
+        while let Some(mut node) = curr {
+            let temp = node.next;
+            node.next = prev;
+            if carrying {
+                if node.val + 1 == 10 {
+                    node.val = 0;
+                } else {
+                    node.val += 1;
+                    carrying = false;
+                }
+            }
+            prev = Some(node);
+            curr = temp;
+        }
+
+        if carrying {
+            let mut node = ListNode::new(1);
+            node.next = prev;
+            Some(Box::new(node))
+        } else {
+            prev
+        }
+    }
+
+    fn reverse(l1: Option<Box<ListNode>>) -> (usize, Option<Box<ListNode>>) {
+        let mut count = 0;
+        let mut curr = l1;
+        let mut prev = None;
+        while let Some(mut node) = curr {
+            let temp = node.next;
+            node.next = prev;
+            prev = Some(node);
+            curr = temp;
+            count += 1;
+        }
+        (count, prev)
     }
 }
 
@@ -59,8 +101,8 @@ impl Solution {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn it_works() {
+
+    fn first() {
         let v1 = vec![2, 4, 3];
         let v2 = vec![5, 6, 4];
 
@@ -72,6 +114,21 @@ mod tests {
         }
 
         assert_eq!(output, vec![7, 0, 8]);
+    }
+
+    #[test]
+    fn second() {
+        let v1 = vec![5];
+        let v2 = vec![5];
+
+        let mut head = Solution::add_two_numbers(create_ll(&v1), create_ll(&v2));
+        let mut output = vec![];
+        while let Some(node) = head {
+            output.push(node.val);
+            head = node.next;
+        }
+
+        assert_eq!(output, vec![1,0]);
     }
 
     fn create_ll(nums: &[i32]) -> Option<Box<ListNode>> {
