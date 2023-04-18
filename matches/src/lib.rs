@@ -89,4 +89,10 @@ mod tests {
         let expected = false;
         assert_eq!(expected, output);
     }
+
+    #[test]
+    fn thing() {
+        let mut s = "asdf".to_string();
+        s.replacen(j, to, count)
+    }
 }

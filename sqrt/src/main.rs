@@ -3,8 +3,6 @@ fn main() {
     let ans = find_sqrt(target);
     println!("{:.1}", ans);
 }
-
-
 fn find_sqrt(target:f64) -> f64{
     let mut ans = 50.0;
     let mut interval = 100f64;
@@ -21,5 +19,12 @@ fn find_sqrt(target:f64) -> f64{
         interval -= 1f64;
     }
 
-    return ans
+    ans
+}
+
+use std::collections::HashMap;
+fn fill_map() {
+    let mut map = HashMap::new();
+    map.insert("asdf", 5);
+    println!("done");
 }

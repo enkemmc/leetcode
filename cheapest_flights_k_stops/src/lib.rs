@@ -1,68 +1,50 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, BinaryHeap};
+use std::cmp::Reverse;
 
+// if we pop from the heap based on least steps not cheapest flight
+// it should prevent us from polluting the cache with cheap paths that take too many steps
+// then we can store cheapest paths to current location without worrying about it containing super
+// cheap paths that take too many steps
 impl Solution {
     pub fn find_cheapest_price(n: i32, flights: Vec<Vec<i32>>, src: i32, dst: i32, k: i32) -> i32 {
-        // this map returns a map of to_to_cost
-        let mut city_to_dest = HashMap::with_capacity(n as usize);
-        for flight in flights {
-            let from = flight[0];
-            let to = flight[1];
-            let cost = flight[2];
-            city_to_dest
-                .entry(from)
-                .or_insert_with(HashMap::new)
-                .insert(to, cost);
+        let n = n as usize;
+        let dst = dst as usize;
+        // airport : (airport, cost)
+        let mut connections = vec![vec![];n];
+        let mut location_to_cheapest_price = vec![i32::MAX;n];
+
+        // min_heap. pop priority is: min_steps, min_cost, min_location_id?? lol
+        // (steps, total_cost, current_location)
+        let mut heap = BinaryHeap::new();
+        heap.push(Reverse((-1, 0, src as usize)));
+
+        for flight in flights.iter() {
+            if let [from, to, price] = flight[..] {
+                connections[from as usize].push((price, to as usize));
+            }
         }
 
-        let mut visited = HashMap::new(); // city_to_(total_cost, stops)
-        let mut lowest = None;
-        let mut vd = VecDeque::new();
-        let mut stops = 0;
-        vd.push_back((src, 0)); // (city_id, total_cost)
-        visited.entry(src).or_insert_with(Vec::new).push((0, 0));
-
-        while !vd.is_empty() {
-            if stops - 1 > k {
+        while let Some(Reverse(path)) = heap.pop() {
+            let (steps, cost_so_far, location) = path;
+            if steps > k {
                 break;
             }
-            // check each city in the queue to see if its the dst
-            for _ in 0..vd.len() {
-                if let Some((city_id, total_cost)) = vd.pop_front() {
-                    if city_id == dst {
-                        if let Some(val) = lowest {
-                            if total_cost < val {
-                                lowest = Some(total_cost);
-                            }
-                        } else {
-                            lowest = Some(total_cost);
-                        }
-                    } else {
-                        // if we've visited this city before, and it was <= on both total_cost and
-                        // stops, then dont go again
-                        if let Some(to_to_cost) = city_to_dest.get(&city_id) {
-                            for (dest, cost) in to_to_cost.iter() {
-                                if let Some(states) = visited.get(dest) {
-                                    let already_better = states
-                                        .iter()
-                                        .any(|s| s.0 <= *cost && s.1 <= total_cost + cost);
-                                    if !already_better {
-                                        vd.push_back((*dest, total_cost + cost));
-                                    } else {
-                                        continue;
-                                    }
-                                } else {
-                                    vd.push_back((*dest, total_cost + cost));
-                                }
-                            }
-                        }
-                    }
+            if location_to_cheapest_price[location] > cost_so_far {
+                location_to_cheapest_price[location] = cost_so_far;
+
+                // load all connecting flights into the path queue
+                for ticket in &connections[location] {
+                    let (ticket_cost, dest) = ticket;
+                    heap.push(Reverse((steps + 1,cost_so_far + ticket_cost, *dest)));
                 }
             }
-            stops += 1;
-            println!("depth: {}", stops);
         }
 
-        lowest.unwrap_or(-1)
+        if location_to_cheapest_price[dst] == i32::MAX {
+            -1
+        } else {
+            location_to_cheapest_price[dst]
+        }
     }
 }
 
@@ -70,6 +52,7 @@ impl Solution {
 mod tests {
     use crate::Solution;
 
+    #[test]
     fn first() {
         let flights = vec![
             vec![0, 1, 100],
@@ -88,6 +71,21 @@ mod tests {
 
     #[test]
     fn second() {
+        let flights = vec![
+            vec![0, 1, 100],
+            vec![1, 2, 100],
+            vec![0, 2, 500],
+        ];
+        let n = 3;
+        let src = 0;
+        let dst = 2;
+        let k = 1;
+        let ans = Solution::find_cheapest_price(n, flights, src, dst, k);
+        assert_eq!(ans, 200);
+    }
+
+    #[test]
+    fn third() {
         let flights = vec![
             [0, 12, 28],
             [5, 6, 39],
@@ -212,7 +210,7 @@ mod tests {
         let dst = 4;
         let k = 13;
         let ans = Solution::find_cheapest_price(n, flights, src, dst, k);
-        assert_eq!(ans, 700);
+        assert_eq!(ans, 47);
     }
 }
 

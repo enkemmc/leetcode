@@ -9,16 +9,11 @@ impl Solution {
         let mut ans = 0;
 
         for bag in rocks_needed {
-            match bag {
-                0 => ans += 1,
-                n => {
-                    if additional_rocks >= n {
-                        additional_rocks -= n;
-                        ans += 1;
-                    } else {
-                        break;
-                    }
-                },
+            if bag <= additional_rocks {
+                ans += 1;
+                additional_rocks -= bag;
+            } else {
+                break;
             }
         }
 

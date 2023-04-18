@@ -51,6 +51,12 @@ impl Solution {
 
         min
     }
+
+    fn thing() -> Vec<usize>{
+        [1,2,3]
+            .intoit
+
+    }
 }
 
 struct Solution;
